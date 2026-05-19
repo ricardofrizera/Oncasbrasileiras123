@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "economia-capixaba": {
+      "command": "python3",
+      "args": ["/CAMINHO/PARA/server.py"],
+      "env": {
+        "ANTHROPIC_API_KEY": "sk-ant-SEU-API-KEY-AQUI"
+      }
+    }
+  }
+}
