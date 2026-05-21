@@ -2,7 +2,9 @@
 """MCP server — Economia Capixaba content generator."""
 
 import os
+import re
 import json
+import unicodedata
 import anthropic
 from mcp.server.fastmcp import FastMCP
 from prompt_ec import SYSTEM_PROMPT, PORTAL_PROMPT
@@ -140,6 +142,65 @@ def gerar_tudo(materia: str) -> str:
         "portal": portal.content[0].text,
     }
     return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+def publicar_supabase(
+    titulo: str,
+    conteudo: str,
+    resumo: str,
+    ig_titulo: str,
+    ig_legenda: str,
+    ig_narrado: str,
+    transcricao: str = "",
+    fonte_original: str = "",
+    categoria: str = "",
+) -> str:
+    """Salva matéria no Supabase como rascunho. Retorna o ID do artigo criado.
+
+    Args:
+        titulo: Título da matéria para o portal.
+        conteudo: Texto completo da matéria em HTML simples.
+        resumo: Resumo em 2-3 frases para meta description.
+        ig_titulo: Título gerado para o Instagram.
+        ig_legenda: Legenda completa para o Instagram.
+        ig_narrado: Versão narrada (máx 290 chars) para o Instagram.
+        transcricao: Texto original transcrito do áudio (opcional).
+        fonte_original: URL da matéria de origem (opcional).
+        categoria: Categoria do artigo (opcional).
+    """
+    try:
+        from supabase import create_client
+    except ImportError:
+        return "Erro: instale o pacote supabase (pip install supabase)"
+
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    if not url or not key:
+        return "Erro: SUPABASE_URL e SUPABASE_SERVICE_KEY não configuradas."
+
+    s = unicodedata.normalize("NFKD", titulo.lower()).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^\w\s-]", "", s)
+    slug = re.sub(r"[\s_]+", "-", s).strip("-")[:80]
+
+    sb = create_client(url, key)
+    result = sb.table("artigos").insert({
+        "titulo":          titulo,
+        "slug":            slug,
+        "conteudo":        conteudo,
+        "resumo":          resumo,
+        "ig_titulo":       ig_titulo,
+        "ig_legenda":      ig_legenda,
+        "ig_narrado":      ig_narrado,
+        "status":          "rascunho",
+        "autor":           "Economia Capixaba",
+        "transcricao":     transcricao,
+        "fonte_original":  fonte_original,
+        "categoria":       categoria,
+    }).execute()
+
+    artigo_id = result.data[0]["id"]
+    return f"Rascunho criado com sucesso. ID: {artigo_id} | Slug: {slug}"
 
 
 if __name__ == "__main__":
