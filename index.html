@@ -1,271 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BostonTransit AI — Smart Mobility Platform</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BostonTraffic AI — Smart Road Management</title>
 <style>
-  /* ── Reset & base ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --red:    #e3001b;
-    --green:  #00843d;
-    --orange: #ed8b00;
-    --blue:   #003da5;
-    --silver: #7c878e;
-    --tesla:  #cc0000;
-    --dark:   #0a0e1a;
-    --dark2:  #111827;
-    --card:   #1a2035;
-    --border: rgba(255,255,255,0.08);
-    --text:   #e2e8f0;
-    --muted:  #94a3b8;
-    --accent: #38bdf8;
-  }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--dark);
-    color: var(--text);
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
-  a { color: inherit; text-decoration: none; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c14;--bg2:#0f1520;--card:#141c2e;--border:rgba(255,255,255,.07);
+  --text:#e2e8f0;--muted:#64748b;
+  --accent:#f59e0b;   /* amber — traffic signal yellow */
+  --green:#22c55e;    --red:#ef4444;    --blue:#38bdf8;
+  --highway:#f59e0b;  --arterial:#94a3b8;
+  --tesla:#cc0000;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--dark); }
-  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 40px;
+  background:rgba(8,12,20,.88);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:800;letter-spacing:-.5px}
+.nav-logo svg{width:22px;height:22px}
+.nav-links{display:flex;gap:28px;font-size:.875rem;color:var(--muted)}
+.nav-links a:hover{color:var(--accent);transition:color .2s}
+.nav-cta{background:var(--accent);color:#000;padding:8px 20px;border-radius:6px;font-weight:700;font-size:.875rem;transition:opacity .2s}
+.nav-cta:hover{opacity:.85}
+@media(max-width:640px){.nav-links{display:none}}
 
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 40px;
-    background: rgba(10,14,26,0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 700; }
-  .nav-logo .dot { width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
-  .nav-links { display: flex; gap: 32px; font-size: .9rem; color: var(--muted); }
-  .nav-links a:hover { color: var(--accent); transition: color .2s; }
-  .nav-cta {
-    background: var(--accent); color: var(--dark);
-    padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: .9rem;
-    transition: opacity .2s;
-  }
-  .nav-cta:hover { opacity: .85; }
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;padding:120px 40px 80px;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(245,158,11,.06) 0%,transparent 70%)}
+#road-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero-content{position:relative;z-index:1;max-width:720px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+  padding:6px 18px;border-radius:999px;font-size:.78rem;color:var(--accent);margin-bottom:24px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+h1{font-size:clamp(2.4rem,5vw,3.8rem);font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:18px}
+h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:1.05rem;color:var(--muted);max-width:540px;margin:0 auto 36px}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#000;padding:13px 30px;border-radius:8px;font-weight:700;transition:transform .2s,box-shadow .2s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,158,11,.3)}
+.btn-ghost{border:1px solid var(--border);padding:13px 30px;border-radius:8px;font-size:.95rem;transition:border-color .2s}
+.btn-ghost:hover{border-color:var(--accent)}
+.hero-kpis{display:flex;justify-content:center;gap:36px;margin-top:56px;flex-wrap:wrap}
+.kpi{text-align:center}
+.kpi-val{font-size:1.9rem;font-weight:900;color:var(--accent)}
+.kpi-lbl{font-size:.75rem;color:var(--muted);margin-top:2px}
 
-  /* ── HERO ── */
-  #hero {
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; overflow: hidden;
-    padding: 120px 40px 80px;
-  }
-  #hero-canvas {
-    position: absolute; inset: 0; z-index: 0;
-    width: 100%; height: 100%;
-  }
-  .hero-content { position: relative; z-index: 1; max-width: 700px; text-align: center; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.3);
-    padding: 6px 16px; border-radius: 999px; font-size: .8rem; color: var(--accent);
-    margin-bottom: 24px;
-  }
-  .hero-badge .live { width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite; }
-  h1 {
-    font-size: clamp(2.4rem, 5vw, 4rem);
-    font-weight: 800; line-height: 1.15; letter-spacing: -1px;
-    margin-bottom: 20px;
-  }
-  h1 span { color: var(--accent); }
-  .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 520px; margin: 0 auto 36px; }
-  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary {
-    background: var(--accent); color: var(--dark);
-    padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem;
-    transition: transform .2s, box-shadow .2s;
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(56,189,248,.35); }
-  .btn-outline {
-    border: 1px solid var(--border); padding: 14px 32px; border-radius: 8px;
-    font-size: 1rem; color: var(--text); transition: border-color .2s;
-  }
-  .btn-outline:hover { border-color: var(--accent); }
-  .hero-stats {
-    display: flex; justify-content: center; gap: 40px; margin-top: 60px;
-    flex-wrap: wrap;
-  }
-  .hero-stat { text-align: center; }
-  .hero-stat .val { font-size: 2rem; font-weight: 800; color: var(--accent); }
-  .hero-stat .lbl { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+/* ── TICKER ── */
+.ticker-wrap{overflow:hidden;background:rgba(245,158,11,.05);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:9px 0}
+.ticker{display:flex;gap:72px;animation:tick 35s linear infinite;white-space:nowrap}
+.ticker-item{font-size:.8rem;color:var(--muted)}
+.ticker-item strong{color:var(--text)}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-  /* ── SECTIONS ── */
-  section { padding: 100px 40px; }
-  .section-inner { max-width: 1200px; margin: 0 auto; }
-  .section-tag { font-size: .75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px; }
-  .section-title { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
-  .section-sub { color: var(--muted); max-width: 560px; margin-bottom: 60px; }
+/* ── SECTIONS ── */
+section{padding:90px 40px}
+.inner{max-width:1160px;margin:0 auto}
+.stag{font-size:.72rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--accent);margin-bottom:10px}
+.stitle{font-size:clamp(1.7rem,3vw,2.5rem);font-weight:900;margin-bottom:14px;line-height:1.15}
+.ssub{color:var(--muted);max-width:540px;margin-bottom:52px;font-size:.95rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:780px){.grid2{grid-template-columns:1fr}}
 
-  /* ── LIVE DASHBOARD ── */
-  #dashboard { background: var(--dark2); }
-  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  @media(max-width:768px){ .dash-grid { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 28px;
-  }
-  .card-title { font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 20px; }
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px}
+.ctitle{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:18px}
 
-  /* Route rows */
-  .route-row {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 0; border-bottom: 1px solid var(--border);
-  }
-  .route-row:last-child { border-bottom: none; }
-  .route-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-  .route-name { font-weight: 600; min-width: 100px; }
-  .bar-wrap { flex: 1; background: rgba(255,255,255,.07); border-radius: 999px; height: 6px; }
-  .bar-fill { height: 6px; border-radius: 999px; transition: width 1.5s ease; }
-  .route-delay { font-size: .85rem; color: var(--muted); min-width: 60px; text-align: right; }
+/* Road list */
+.road-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.road-row:last-child{border-bottom:none}
+.road-badge{padding:2px 9px;border-radius:4px;font-size:.68rem;font-weight:700;text-transform:uppercase}
+.hw{background:rgba(245,158,11,.15);color:var(--accent)}
+.art{background:rgba(148,163,184,.12);color:var(--arterial)}
+.road-name{flex:1;font-size:.88rem;font-weight:600}
+.cong-bar-wrap{width:90px;background:rgba(255,255,255,.06);border-radius:999px;height:5px}
+.cong-bar{height:5px;border-radius:999px}
+.road-pct{font-size:.82rem;min-width:38px;text-align:right}
 
-  /* Recommendation list */
-  .rec-item {
-    display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border);
-    align-items: flex-start;
-  }
-  .rec-item:last-child { border-bottom: none; }
-  .rec-icon { font-size: 1.2rem; margin-top: 2px; flex-shrink: 0; }
-  .rec-text { font-size: .9rem; color: var(--muted); }
-  .rec-text strong { color: var(--text); }
+/* Incident list */
+.inc-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
+.inc-item:last-child{border-bottom:none}
+.inc-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.inc-body{flex:1}
+.inc-type{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.inc-desc{font-size:.84rem;color:var(--muted)}
 
-  /* Transfer hubs */
-  .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .hub-card {
-    background: rgba(255,255,255,.04); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 6px;
-  }
-  .hub-name { font-weight: 600; font-size: .9rem; }
-  .hub-lines { display: flex; gap: 6px; flex-wrap: wrap; }
-  .line-badge {
-    padding: 2px 8px; border-radius: 999px; font-size: .7rem; font-weight: 700;
-  }
-  .hub-score { font-size: .75rem; color: var(--muted); }
+/* Route path */
+.path-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:14px}
+.path-stop{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
+  padding:5px 12px;border-radius:7px;font-size:.8rem;white-space:nowrap}
+.path-arrow{color:var(--accent);font-size:.85rem}
+.path-meta{margin-top:14px;font-size:.83rem;color:var(--muted)}
 
-  /* Optimal path */
-  .path-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-  .path-stop {
-    background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.25);
-    padding: 6px 14px; border-radius: 8px; font-size: .85rem; white-space: nowrap;
-  }
-  .path-arrow { color: var(--accent); font-size: .9rem; }
-  .path-meta { margin-top: 16px; color: var(--muted); font-size: .85rem; }
+/* Signal card */
+.signal-phases{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
+.signal-phase{flex:1;min-width:130px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.sp-dir{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.sp-green{font-size:2rem;font-weight:900;color:var(--green)}
+.sp-yellow{font-size:.85rem;color:var(--accent);margin-top:2px}
 
-  /* ── HEADWAY ── */
-  .hw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 8px; }
-  .hw-card {
-    background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 22px;
-  }
-  .hw-label { font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 10px; }
-  .hw-value { font-size: 2.2rem; font-weight: 800; color: var(--accent); }
-  .hw-unit  { font-size: .9rem; color: var(--muted); margin-left: 4px; }
+/* Green wave */
+.gw-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border)}
+.gw-row:last-child{border-bottom:none}
+.gw-offset-bar{flex:1;background:rgba(255,255,255,.05);border-radius:999px;height:6px;position:relative}
+.gw-fill{height:6px;border-radius:999px;background:var(--green);position:absolute;left:0}
+.gw-sec{font-size:.82rem;color:var(--muted);min-width:48px;text-align:right}
 
-  /* ── TESLA SECTION ── */
-  #tesla { background: linear-gradient(135deg, #0a0e1a 0%, #1a0a0a 100%); }
-  .tesla-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-  @media(max-width:768px) { .tesla-grid { grid-template-columns: 1fr; } }
-  .tesla-features { display: flex; flex-direction: column; gap: 24px; }
-  .tesla-feat {
-    display: flex; gap: 18px; align-items: flex-start;
-    padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    transition: border-color .3s;
-  }
-  .tesla-feat:hover { border-color: var(--tesla); }
-  .tesla-feat-icon {
-    width: 44px; height: 44px; border-radius: 10px;
-    background: rgba(204,0,0,.15); display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
-  }
-  .tesla-feat h4 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; }
-  .tesla-feat p { font-size: .85rem; color: var(--muted); }
+/* ── TRAFFIC MAP ── */
+#map-section{background:var(--bg2)}
+.map-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+#traffic-canvas{width:100%;border-radius:10px;display:block}
+.map-legend{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted)}
+.leg-line{width:24px;height:3px;border-radius:2px}
+.leg-dot{width:10px;height:10px;border-radius:50%}
 
-  /* AV Map simulation */
-  .av-map-container {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 24px; position: relative; overflow: hidden;
-  }
-  #av-canvas { width: 100%; border-radius: 8px; display: block; }
-  .av-legend {
-    display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px;
-  }
-  .av-legend-item { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--muted); }
-  .av-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+/* ── TESLA ── */
+#tesla-section{background:linear-gradient(135deg,var(--bg) 0%,#1a0505 100%)}
+.tesla-grid{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:start}
+@media(max-width:780px){.tesla-grid{grid-template-columns:1fr}}
+.tesla-features{display:flex;flex-direction:column;gap:18px}
+.tf{display:flex;gap:16px;align-items:flex-start;padding:18px;background:var(--card);
+  border:1px solid var(--border);border-radius:12px;transition:border-color .3s}
+.tf:hover{border-color:rgba(204,0,0,.5)}
+.tf-icon{width:42px;height:42px;border-radius:9px;background:rgba(204,0,0,.12);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.tf h4{font-size:.92rem;font-weight:700;margin-bottom:4px}
+.tf p{font-size:.83rem;color:var(--muted)}
+.tesla-stats{display:flex;flex-direction:column;gap:16px}
+.ts-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.ts-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.ts-val{font-size:1.8rem;font-weight:900}
+.ts-sub{font-size:.8rem;color:var(--muted);margin-top:4px}
 
-  /* ── LIVE FEED ── */
-  #live { background: var(--dark2); }
-  .feed-container {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 24px; height: 320px; overflow: hidden; position: relative;
-  }
-  .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .feed-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 1.5s infinite; }
-  .feed-title { font-size: .8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
-  #feed-list { display: flex; flex-direction: column; gap: 10px; }
-  .feed-item {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 10px 14px; border-radius: 8px;
-    background: rgba(255,255,255,.03); border: 1px solid var(--border);
-    font-size: .83rem; animation: slideIn .4s ease;
-  }
-  @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-  .feed-time { color: var(--muted); white-space: nowrap; min-width: 70px; }
-  .feed-tag {
-    padding: 1px 8px; border-radius: 999px; font-size: .7rem; font-weight: 700;
-    white-space: nowrap; align-self: center;
-  }
-  .tag-info  { background: rgba(56,189,248,.15); color: var(--accent); }
-  .tag-warn  { background: rgba(237,139,0,.15);  color: var(--orange); }
-  .tag-ok    { background: rgba(34,197,94,.15);  color: #22c55e; }
-  .tag-tesla { background: rgba(204,0,0,.15);    color: var(--tesla); }
+/* ── LIVE FEED ── */
+#feed-section{background:var(--bg2)}
+.feed-box{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;height:340px;overflow:hidden}
+.feed-hdr{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.feed-title{font-size:.72rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
+#feed-list{display:flex;flex-direction:column;gap:9px}
+.feed-item{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;
+  border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);
+  font-size:.82rem;animation:si .35s ease}
+@keyframes si{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+.ftime{color:var(--muted);white-space:nowrap;min-width:72px}
+.ftag{padding:1px 8px;border-radius:999px;font-size:.68rem;font-weight:700;white-space:nowrap;align-self:center}
+.t-acc{background:rgba(239,68,68,.15);color:var(--red)}
+.t-jam{background:rgba(245,158,11,.15);color:var(--accent)}
+.t-ok {background:rgba(34,197,94,.15);color:var(--green)}
+.t-av {background:rgba(204,0,0,.15);color:#ff6b6b}
+.t-sig{background:rgba(56,189,248,.15);color:var(--blue)}
 
-  /* ── HOW IT WORKS ── */
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
-  .step {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 28px; position: relative; overflow: hidden;
-  }
-  .step::before {
-    content: attr(data-n);
-    position: absolute; top: -10px; right: 16px;
-    font-size: 5rem; font-weight: 900; color: rgba(56,189,248,.05); line-height: 1;
-  }
-  .step-icon { font-size: 2rem; margin-bottom: 16px; }
-  .step h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-  .step p  { font-size: .875rem; color: var(--muted); }
+/* ── HOW ── */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px;position:relative;overflow:hidden}
+.step::before{content:attr(data-n);position:absolute;top:-8px;right:14px;
+  font-size:5rem;font-weight:900;color:rgba(245,158,11,.05);line-height:1}
+.step-icon{font-size:1.8rem;margin-bottom:14px}
+.step h4{font-size:.95rem;font-weight:700;margin-bottom:7px}
+.step p{font-size:.84rem;color:var(--muted)}
 
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 40px; text-align: center; color: var(--muted); font-size: .85rem;
-  }
-  footer span { color: var(--accent); }
+/* ── TRAFFIC LIGHT WIDGET ── */
+.tl-widget{display:flex;flex-direction:column;align-items:center;gap:0;
+  width:42px;border:2px solid rgba(255,255,255,.12);border-radius:8px;
+  background:#0a0a0a;padding:6px 5px;gap:5px}
+.tl-bulb{width:28px;height:28px;border-radius:50%;transition:background .3s,box-shadow .3s}
+.tl-red   {background:#ef4444;box-shadow:0 0 12px #ef4444}
+.tl-yellow{background:#f59e0b;box-shadow:0 0 12px #f59e0b}
+.tl-green {background:#22c55e;box-shadow:0 0 12px #22c55e}
+.tl-off   {background:#1a1a1a;box-shadow:none}
 
-  /* ── Ticker ── */
-  .ticker-wrap {
-    overflow: hidden; background: rgba(56,189,248,.06); border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border); padding: 10px 0;
-  }
-  .ticker {
-    display: flex; gap: 80px; animation: ticker 30s linear infinite;
-    white-space: nowrap;
-  }
-  .ticker-item { font-size: .8rem; color: var(--muted); display: flex; gap: 8px; }
-  .ticker-item strong { color: var(--text); }
-  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:36px;text-align:center;
+  color:var(--muted);font-size:.82rem}
+footer span{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -273,273 +194,352 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo">
-    <div class="dot"></div>
-    BostonTransit <span style="color:var(--accent)">AI</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 17l3-10h12l3 10" stroke="var(--accent)"/>
+      <circle cx="7.5" cy="17" r="1.5" fill="var(--accent)"/>
+      <circle cx="16.5" cy="17" r="1.5" fill="var(--accent)"/>
+      <path d="M2 17h20" stroke="var(--muted)" stroke-width="1"/>
+    </svg>
+    BostonTraffic <span style="color:var(--accent)">AI</span>
   </div>
   <div class="nav-links">
     <a href="#dashboard">Dashboard</a>
-    <a href="#tesla">AV Integration</a>
-    <a href="#live">Live Feed</a>
-    <a href="#how">How It Works</a>
+    <a href="#map-section">Road Map</a>
+    <a href="#tesla-section">Tesla AV</a>
+    <a href="#feed-section">Live Feed</a>
   </div>
-  <a class="nav-cta" href="#dashboard">View Live Data</a>
+  <a class="nav-cta" href="#dashboard">Open Dashboard</a>
 </nav>
 
 <!-- HERO -->
 <section id="hero">
-  <canvas id="hero-canvas"></canvas>
+  <canvas id="road-canvas"></canvas>
   <div class="hero-content">
-    <div class="hero-badge">
-      <span class="live"></span> System Active — MBTA + Autonomous Vehicles
-    </div>
-    <h1>Smarter Transit for<br/><span>Greater Boston</span></h1>
+    <div class="hero-badge"><span class="live-dot"></span> 47 Road Sensors Active — I-93 · I-90 · Route 1</div>
+    <h1>AI Traffic Control<br/>for <em>Greater Boston</em></h1>
     <p class="hero-sub">
-      AI-powered routing, real-time delay analysis, and seamless integration
-      with autonomous vehicle fleets — including Tesla FSD — for a unified,
-      zero-friction commute.
+      Real-time congestion detection, adaptive signal optimisation,
+      incident response, and seamless Tesla FSD integration — all roads, no subways.
     </p>
     <div class="hero-btns">
-      <a class="btn-primary" href="#dashboard">Explore Dashboard</a>
-      <a class="btn-outline" href="#tesla">AV Integration</a>
+      <a class="btn-primary" href="#dashboard">View Dashboard</a>
+      <a class="btn-ghost" href="#tesla-section">Tesla Integration</a>
     </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="val" id="stat-routes">4</div><div class="lbl">Transit Lines</div></div>
-      <div class="hero-stat"><div class="val" id="stat-stops">10</div><div class="lbl">Key Stations</div></div>
-      <div class="hero-stat"><div class="val" id="stat-av">24</div><div class="lbl">AV Units Active</div></div>
-      <div class="hero-stat"><div class="val" id="stat-delay">3.7<small>m</small></div><div class="lbl">Avg Delay</div></div>
+    <div class="hero-kpis">
+      <div class="kpi"><div class="kpi-val" id="k-roads">16</div><div class="kpi-lbl">Monitored Roads</div></div>
+      <div class="kpi"><div class="kpi-val" id="k-signals">14</div><div class="kpi-lbl">Smart Signals</div></div>
+      <div class="kpi"><div class="kpi-val" id="k-av">31</div><div class="kpi-lbl">Tesla AVs Online</div></div>
+      <div class="kpi"><div class="kpi-val" id="k-cong">62<small style="font-size:1.1rem">%</small></div><div class="kpi-lbl">Network Congestion</div></div>
+      <div class="kpi"><div class="kpi-val" id="k-inc">3</div><div class="kpi-lbl">Active Incidents</div></div>
     </div>
   </div>
 </section>
 
 <!-- TICKER -->
 <div class="ticker-wrap">
-  <div class="ticker" id="ticker">
-    <span class="ticker-item"><strong>Red Line</strong> 2.3 min avg delay · 78% capacity</span>
-    <span class="ticker-item"><strong>Green Line ⚠</strong> 4.1 min delay · 85% capacity — Express recommended</span>
-    <span class="ticker-item"><strong>Orange Line</strong> 3.0 min delay · 70% capacity</span>
-    <span class="ticker-item"><strong>Silver Line ⚠</strong> 5.5 min delay — Signal priority requested</span>
-    <span class="ticker-item"><strong>Tesla AV Fleet</strong> 24 vehicles dispatched · Harvard, Kendall, South Station</span>
-    <span class="ticker-item"><strong>Optimal Route</strong> Harvard → South Station via Kendall/MIT · cost index 6.73</span>
-    <!-- duplicate for seamless loop -->
-    <span class="ticker-item"><strong>Red Line</strong> 2.3 min avg delay · 78% capacity</span>
-    <span class="ticker-item"><strong>Green Line ⚠</strong> 4.1 min delay · 85% capacity — Express recommended</span>
-    <span class="ticker-item"><strong>Orange Line</strong> 3.0 min delay · 70% capacity</span>
-    <span class="ticker-item"><strong>Silver Line ⚠</strong> 5.5 min delay — Signal priority requested</span>
-    <span class="ticker-item"><strong>Tesla AV Fleet</strong> 24 vehicles dispatched · Harvard, Kendall, South Station</span>
-    <span class="ticker-item"><strong>Optimal Route</strong> Harvard → South Station via Kendall/MIT · cost index 6.73</span>
+  <div class="ticker">
+    <span class="ticker-item"><strong>I-93 S ⚠</strong> 82% congestion — accident near exit 26, 2 lanes blocked</span>
+    <span class="ticker-item"><strong>I-90 E ⚠</strong> 88% — construction at Prudential/SouthBay merge</span>
+    <span class="ticker-item"><strong>Route 1 N</strong> 60% moderate — normal delays Revere→Sullivan</span>
+    <span class="ticker-item"><strong>Boylston St ⚠</strong> 78% — stalled vehicle near Arlington St</span>
+    <span class="ticker-item"><strong>Kenmore Sq Signal</strong> N-S 58s green · E-W 24s green — active optimisation</span>
+    <span class="ticker-item"><strong>Tesla AV Fleet</strong> 31 units · avg speed 38 km/h · 0 faults</span>
+    <span class="ticker-item"><strong>Green Wave</strong> Storrow Dr corridor synced at 48 km/h · 4 signals</span>
+    <!-- duplicate for loop -->
+    <span class="ticker-item"><strong>I-93 S ⚠</strong> 82% congestion — accident near exit 26, 2 lanes blocked</span>
+    <span class="ticker-item"><strong>I-90 E ⚠</strong> 88% — construction at Prudential/SouthBay merge</span>
+    <span class="ticker-item"><strong>Route 1 N</strong> 60% moderate — normal delays Revere→Sullivan</span>
+    <span class="ticker-item"><strong>Boylston St ⚠</strong> 78% — stalled vehicle near Arlington St</span>
+    <span class="ticker-item"><strong>Kenmore Sq Signal</strong> N-S 58s green · E-W 24s green — active optimisation</span>
+    <span class="ticker-item"><strong>Tesla AV Fleet</strong> 31 units · avg speed 38 km/h · 0 faults</span>
+    <span class="ticker-item"><strong>Green Wave</strong> Storrow Dr corridor synced at 48 km/h · 4 signals</span>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <section id="dashboard">
-  <div class="section-inner">
-    <div class="section-tag">Live Analysis</div>
-    <h2 class="section-title">Network Intelligence Dashboard</h2>
-    <p class="section-sub">Real-time output from the Boston Transit AI engine — delays, crowding, optimal paths, and transfer hub rankings.</p>
+  <div class="inner">
+    <div class="stag">Live Output — boston_traffic.py</div>
+    <h2 class="stitle">Road Network Intelligence</h2>
+    <p class="ssub">Data produced by the Python engine: congestion levels, incidents, optimal routing, adaptive signals, and green-wave offsets.</p>
 
-    <div class="dash-grid">
+    <div class="grid2">
 
-      <!-- Route health -->
+      <!-- Congestion -->
       <div class="card">
-        <div class="card-title">Route Health — Delay &amp; Crowding</div>
-        <div id="route-list">
-          <div class="route-row">
-            <div class="route-dot" style="background:#e3001b"></div>
-            <div class="route-name">Red Line</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:78%;background:#e3001b"></div></div>
-            <div class="route-delay">2.3 min</div>
+        <div class="ctitle">Highway &amp; Arterial Congestion</div>
+        <div id="road-list">
+          <!-- I-93 S Leverett→SouthBay 82% -->
+          <div class="road-row">
+            <span class="road-badge hw">HWY</span>
+            <span class="road-name">I-93 S — Leverett→South Bay</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:82%;background:#ef4444"></div></div>
+            <span class="road-pct" style="color:#ef4444">82%</span>
           </div>
-          <div class="route-row">
-            <div class="route-dot" style="background:#00843d"></div>
-            <div class="route-name">Green Line</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:85%;background:#ed8b00"></div></div>
-            <div class="route-delay" style="color:#ed8b00">4.1 min ⚠</div>
+          <!-- I-90 E Prudential→SB 88% -->
+          <div class="road-row">
+            <span class="road-badge hw">HWY</span>
+            <span class="road-name">I-90 E — Prudential→South Bay</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:88%;background:#ef4444"></div></div>
+            <span class="road-pct" style="color:#ef4444">88%</span>
           </div>
-          <div class="route-row">
-            <div class="route-dot" style="background:#ed8b00"></div>
-            <div class="route-name">Orange Line</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:70%;background:#ed8b00"></div></div>
-            <div class="route-delay">3.0 min</div>
+          <!-- I-90 E Allston 75% -->
+          <div class="road-row">
+            <span class="road-badge hw">HWY</span>
+            <span class="road-name">I-90 E — Allston→Prudential</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:75%;background:#f59e0b"></div></div>
+            <span class="road-pct" style="color:#f59e0b">75%</span>
           </div>
-          <div class="route-row">
-            <div class="route-dot" style="background:#7c878e"></div>
-            <div class="route-name">Silver Line</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:60%;background:#7c878e"></div></div>
-            <div class="route-delay" style="color:#ed8b00">5.5 min ⚠</div>
+          <!-- Boylston 78% -->
+          <div class="road-row">
+            <span class="road-badge art">ART</span>
+            <span class="road-name">Boylston St</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:78%;background:#f59e0b"></div></div>
+            <span class="road-pct" style="color:#f59e0b">78%</span>
+          </div>
+          <!-- Storrow 72% -->
+          <div class="road-row">
+            <span class="road-badge art">ART</span>
+            <span class="road-name">Storrow Dr W</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:72%;background:#f59e0b"></div></div>
+            <span class="road-pct" style="color:#f59e0b">72%</span>
+          </div>
+          <!-- I-93 N Zakim→Sullivan 68% -->
+          <div class="road-row">
+            <span class="road-badge hw">HWY</span>
+            <span class="road-name">I-93 N — Zakim→Sullivan</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:68%;background:#f59e0b"></div></div>
+            <span class="road-pct" style="color:#f59e0b">68%</span>
+          </div>
+          <!-- Comm Ave 65% -->
+          <div class="road-row">
+            <span class="road-badge art">ART</span>
+            <span class="road-name">Commonwealth Ave</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:65%;background:#f59e0b"></div></div>
+            <span class="road-pct" style="color:#f59e0b">65%</span>
+          </div>
+          <!-- I-93 S SB→Neponset 45% -->
+          <div class="road-row">
+            <span class="road-badge hw">HWY</span>
+            <span class="road-name">I-93 S — South Bay→Neponset</span>
+            <div class="cong-bar-wrap"><div class="cong-bar" style="width:45%;background:#22c55e"></div></div>
+            <span class="road-pct" style="color:#22c55e">45%</span>
           </div>
         </div>
       </div>
 
-      <!-- Recommendations -->
+      <!-- Incidents + recommendations -->
       <div class="card">
-        <div class="card-title">AI Recommendations</div>
-        <div class="rec-item">
-          <div class="rec-icon">🚋</div>
-          <div class="rec-text"><strong>Green Line:</strong> Deploy longer consists or add express service during peak hours. Crowding at 85%.</div>
+        <div class="ctitle">Active Incidents &amp; AI Recommendations</div>
+        <div class="inc-item">
+          <div class="inc-icon">🚨</div>
+          <div class="inc-body">
+            <div class="inc-type" style="color:#ef4444">Accident — I-93 S</div>
+            <div class="inc-desc">Multi-vehicle collision near exit 26 — 2 lanes blocked. <strong style="color:var(--text)">→ Activate VMS diversion to Storrow Dr W &amp; Route 1.</strong></div>
+          </div>
         </div>
-        <div class="rec-item">
-          <div class="rec-icon">🚦</div>
-          <div class="rec-text"><strong>Silver Line:</strong> Increase service frequency and add signal priority at key intersections. Avg delay 5.5 min.</div>
+        <div class="inc-item">
+          <div class="inc-icon">🚧</div>
+          <div class="inc-body">
+            <div class="inc-type" style="color:#f59e0b">Construction — I-90 E</div>
+            <div class="inc-desc">Lane closure for bridge deck repair at Prudential/SouthBay. <strong style="color:var(--text)">→ Extend green phases on Commonwealth Ave to absorb overflow.</strong></div>
+          </div>
         </div>
-        <div class="rec-item">
-          <div class="rec-icon">🚗</div>
-          <div class="rec-text"><strong>AV Dispatch:</strong> 8 Tesla units routed to Green Line corridor to absorb overflow demand at Copley &amp; Boylston.</div>
+        <div class="inc-item">
+          <div class="inc-icon">🚗</div>
+          <div class="inc-body">
+            <div class="inc-type" style="color:#f59e0b">Stall — Boylston St</div>
+            <div class="inc-desc">Disabled vehicle blocking right lane near Arlington St. <strong style="color:var(--text)">→ Tesla AV unit #AV-09 dispatched to guide traffic past blockage.</strong></div>
+          </div>
         </div>
-        <div class="rec-item">
-          <div class="rec-icon">📊</div>
-          <div class="rec-text"><strong>Network avg:</strong> 3.72 min delay · 73% crowding. Within threshold — no emergency action required.</div>
+        <div class="inc-item">
+          <div class="inc-icon">📊</div>
+          <div class="inc-body">
+            <div class="inc-type" style="color:#22c55e">Network Status</div>
+            <div class="inc-desc">Network avg congestion <strong style="color:var(--text)">62%</strong>. I-93 S and I-90 E above threshold. Rerouting protocols active. Route 1 S and I-93 S below SouthBay are clear alternatives.</div>
+          </div>
         </div>
       </div>
 
-      <!-- Optimal path -->
+      <!-- Optimal route -->
       <div class="card">
-        <div class="card-title">Dijkstra Optimal Route — Harvard → South Station</div>
+        <div class="ctitle">Dijkstra Fastest Route — Sullivan Sq → Copley Sq</div>
+        <div style="font-size:.83rem;color:var(--muted);margin-bottom:6px">With active incidents · BPR volume-delay function applied</div>
         <div class="path-flow">
-          <div class="path-stop">Harvard Square</div>
+          <div class="path-stop">Sullivan Square</div>
           <div class="path-arrow">→</div>
-          <div class="path-stop">Kendall / MIT</div>
+          <div class="path-stop">Zakim Bridge</div>
           <div class="path-arrow">→</div>
-          <div class="path-stop">Park Street</div>
+          <div class="path-stop">Leverett Circle</div>
           <div class="path-arrow">→</div>
-          <div class="path-stop">Downtown Crossing</div>
+          <div class="path-stop">Longfellow Bridge</div>
           <div class="path-arrow">→</div>
-          <div class="path-stop">South Station</div>
+          <div class="path-stop">Harvard Bridge</div>
+          <div class="path-arrow">→</div>
+          <div class="path-stop">Copley Square</div>
         </div>
-        <div class="path-meta">Cost index: <strong style="color:var(--accent)">6.73</strong> &nbsp;·&nbsp; Estimated travel: <strong style="color:var(--accent)">~22 min</strong> &nbsp;·&nbsp; Line: <span style="color:#e3001b">● Red</span></div>
+        <div class="path-meta">
+          Travel time: <strong style="color:var(--accent)">7.3 min</strong>
+          &nbsp;·&nbsp; Baseline (no incidents): <strong style="color:var(--accent)">7.3 min</strong>
+          &nbsp;·&nbsp; Incident delay: <strong style="color:var(--green)">+0 min</strong> (path already avoids congestion)
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;font-size:.82rem;color:var(--muted)">
+          <strong style="color:var(--text)">Avoided:</strong> I-93 S (accident +50% delay) and I-90 E (construction +35% delay). Routed via Storrow Dr / Longfellow Bridge corridor instead.
+        </div>
       </div>
 
-      <!-- Transfer hubs -->
+      <!-- Adaptive signal + traffic light widget -->
       <div class="card">
-        <div class="card-title">Top Transfer Hubs — Connectivity Score</div>
-        <div class="hub-grid">
-          <div class="hub-card">
-            <div class="hub-name">North Station</div>
-            <div class="hub-lines">
-              <span class="line-badge" style="background:rgba(0,132,61,.2);color:#00843d">Green</span>
-              <span class="line-badge" style="background:rgba(237,139,0,.2);color:#ed8b00">Orange</span>
-              <span class="line-badge" style="background:rgba(56,189,248,.2);color:var(--accent)">CR</span>
+        <div class="ctitle">Adaptive Signal — Kenmore Square (90 s cycle)</div>
+        <div style="display:flex;gap:24px;align-items:center;margin-top:8px">
+          <!-- Traffic light visual -->
+          <div>
+            <div class="tl-widget" id="tl-widget">
+              <div class="tl-bulb tl-off" id="tl-red"></div>
+              <div class="tl-bulb tl-off" id="tl-yellow"></div>
+              <div class="tl-bulb tl-off" id="tl-green"></div>
             </div>
-            <div class="hub-score">Score: 3 / 3 lines</div>
+            <div style="font-size:.65rem;color:var(--muted);text-align:center;margin-top:6px">N-S</div>
           </div>
-          <div class="hub-card">
-            <div class="hub-name">South Station</div>
-            <div class="hub-lines">
-              <span class="line-badge" style="background:rgba(227,0,27,.2);color:#e3001b">Red</span>
-              <span class="line-badge" style="background:rgba(56,189,248,.2);color:var(--accent)">CR</span>
-              <span class="line-badge" style="background:rgba(124,135,142,.2);color:#7c878e">Silver</span>
+          <div style="flex:1">
+            <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">
+              Vehicle count: <strong style="color:var(--text)">N-S 420 veh/h</strong> · <strong style="color:var(--text)">E-W 180 veh/h</strong>
             </div>
-            <div class="hub-score">Score: 3 / 3 lines</div>
-          </div>
-          <div class="hub-card">
-            <div class="hub-name">Park Street</div>
-            <div class="hub-lines">
-              <span class="line-badge" style="background:rgba(227,0,27,.2);color:#e3001b">Red</span>
-              <span class="line-badge" style="background:rgba(0,132,61,.2);color:#00843d">Green</span>
+            <div class="signal-phases">
+              <div class="signal-phase">
+                <div class="sp-dir">N-S (Comm Ave)</div>
+                <div class="sp-green">58<span style="font-size:1rem">s</span></div>
+                <div class="sp-yellow">+ 4s yellow</div>
+              </div>
+              <div class="signal-phase">
+                <div class="sp-dir">E-W (Brookline)</div>
+                <div class="sp-green" style="color:var(--accent)">24<span style="font-size:1rem">s</span></div>
+                <div class="sp-yellow">+ 4s yellow</div>
+              </div>
             </div>
-            <div class="hub-score">Score: 2 / 3 lines</div>
-          </div>
-          <div class="hub-card">
-            <div class="hub-name">Downtown Crossing</div>
-            <div class="hub-lines">
-              <span class="line-badge" style="background:rgba(227,0,27,.2);color:#e3001b">Red</span>
-              <span class="line-badge" style="background:rgba(237,139,0,.2);color:#ed8b00">Orange</span>
-            </div>
-            <div class="hub-score">Score: 2 / 3 lines</div>
+            <div style="margin-top:12px;font-size:.78rem;color:var(--muted)">Green-wave compatible ✓ &nbsp;·&nbsp; 90s cycle</div>
           </div>
         </div>
       </div>
 
     </div>
 
-    <!-- Headway cards -->
-    <div style="margin-top:40px">
-      <div class="card-title" style="margin-bottom:20px">Optimised Headways — Green Line (280,000 daily passengers)</div>
-      <div class="hw-grid">
-        <div class="hw-card">
-          <div class="hw-label">Peak Hours (07:00–09:00 &amp; 16:00–19:00)</div>
-          <div class="hw-value">2.0 <span class="hw-unit">min</span></div>
-          <div style="color:var(--muted);font-size:.8rem;margin-top:8px">Every 2 min during rush — 60% of daily demand in 4 hrs</div>
+    <!-- Green wave -->
+    <div style="margin-top:24px" class="card">
+      <div class="ctitle">Green Wave — Storrow Drive Corridor (target 48 km/h)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0">
+        <div class="gw-row">
+          <div style="font-size:.85rem;min-width:180px">Leverett Circle</div>
+          <div class="gw-offset-bar"><div class="gw-fill" style="width:0%"></div></div>
+          <div class="gw-sec">0 s</div>
         </div>
-        <div class="hw-card">
-          <div class="hw-label">Off-Peak Hours</div>
-          <div class="hw-value">2.0 <span class="hw-unit">min</span></div>
-          <div style="color:var(--muted);font-size:.8rem;margin-top:8px">High ridership sustains 2-min headway throughout the day</div>
+        <div class="gw-row">
+          <div style="font-size:.85rem;min-width:180px">Longfellow Bridge</div>
+          <div class="gw-offset-bar"><div class="gw-fill" style="width:74%"></div></div>
+          <div class="gw-sec">67 s</div>
         </div>
-        <div class="hw-card">
-          <div class="hw-label">Vehicle Capacity</div>
-          <div class="hw-value">150 <span class="hw-unit">pax</span></div>
-          <div style="color:var(--muted);font-size:.8rem;margin-top:8px">Per consist — longer trains recommended to ease crowding</div>
+        <div class="gw-row">
+          <div style="font-size:.85rem;min-width:180px">Harvard Bridge / Mass Ave</div>
+          <div class="gw-offset-bar"><div class="gw-fill" style="width:41%"></div></div>
+          <div class="gw-sec">37 s</div>
         </div>
+        <div class="gw-row" style="border-bottom:none">
+          <div style="font-size:.85rem;min-width:180px">Kenmore Square</div>
+          <div class="gw-offset-bar"><div class="gw-fill" style="width:41%"></div></div>
+          <div class="gw-sec">37 s</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:.8rem;color:var(--muted)">
+        A vehicle maintaining <strong style="color:var(--text)">48 km/h</strong> will receive a green light at every intersection along this corridor. Offsets are synced to a <strong style="color:var(--text)">90-second master cycle</strong>.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ROAD MAP -->
+<section id="map-section">
+  <div class="inner">
+    <div class="stag">Network Visualisation</div>
+    <h2 class="stitle">Live Road Traffic Map</h2>
+    <p class="ssub">Real-time congestion on I-93, I-90, and Route 1 — with moving vehicles and incident markers.</p>
+    <div class="map-wrap">
+      <canvas id="traffic-canvas" width="1100" height="500"></canvas>
+      <div class="map-legend">
+        <div class="leg-item"><div class="leg-line" style="background:#ef4444"></div> Standstill / Heavy (&gt;75%)</div>
+        <div class="leg-item"><div class="leg-line" style="background:#f59e0b"></div> Moderate (45–75%)</div>
+        <div class="leg-item"><div class="leg-line" style="background:#22c55e"></div> Free flow (&lt;45%)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div> Intersection / Exit</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#cc0000"></div> Tesla AV</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fff;opacity:.5"></div> Incident</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TESLA / AV SECTION -->
-<section id="tesla">
-  <div class="section-inner">
-    <div class="section-tag">Autonomous Vehicles</div>
-    <h2 class="section-title">Tesla FSD Integration</h2>
-    <p class="section-sub">When MBTA capacity hits critical thresholds, the platform automatically dispatches Tesla autonomous vehicles to fill the gap — creating a seamless last-mile and overflow solution.</p>
-
+<!-- TESLA -->
+<section id="tesla-section">
+  <div class="inner">
+    <div class="stag">Autonomous Vehicles</div>
+    <h2 class="stitle">Tesla FSD Road Integration</h2>
+    <p class="ssub">When congestion or incidents hit critical thresholds, the platform orchestrates Tesla FSD vehicles as intelligent mobile traffic agents.</p>
     <div class="tesla-grid">
       <div class="tesla-features">
-        <div class="tesla-feat">
-          <div class="tesla-feat-icon">🧠</div>
-          <div>
-            <h4>AI Dispatch Engine</h4>
-            <p>When a route exceeds 80% crowding, the system calculates the nearest available Tesla AV units and dispatches them to relief stops automatically via the Fleet API.</p>
-          </div>
+        <div class="tf">
+          <div class="tf-icon">🧠</div>
+          <div><h4>Congestion-Triggered Dispatch</h4>
+          <p>When a highway segment exceeds 80% load factor, the system routes nearby Tesla units to assist — guiding drivers through incident zones and clearing blockages faster.</p></div>
         </div>
-        <div class="tesla-feat">
-          <div class="tesla-feat-icon">📡</div>
-          <div>
-            <h4>Real-Time MBTA Sync</h4>
-            <p>AVs receive live MBTA departure feeds. If a train is delayed ≥ 4 min, Tesla vehicles are pre-positioned at the affected station to intercept passengers.</p>
-          </div>
+        <div class="tf">
+          <div class="tf-icon">📡</div>
+          <div><h4>V2I Signal Sync</h4>
+          <p>Tesla AVs communicate directly with the adaptive signal controller. Approaching vehicles extend their green phase by up to 8 seconds to reduce stop-and-go waves.</p></div>
         </div>
-        <div class="tesla-feat">
-          <div class="tesla-feat-icon">🛣️</div>
-          <div>
-            <h4>Optimal Route Handoff</h4>
-            <p>The Dijkstra engine computes the fastest path; if transit is slower, it reroutes passengers to an AV pick-up point with a single tap in the companion app.</p>
-          </div>
+        <div class="tf">
+          <div class="tf-icon">🛣️</div>
+          <div><h4>Dynamic Reroute Push</h4>
+          <p>When Dijkstra detects a faster path, the route is pushed to all Tesla FSD vehicles on the affected corridor within 200 ms — fleet-wide rerouting without driver input.</p></div>
         </div>
-        <div class="tesla-feat">
-          <div class="tesla-feat-icon">🔋</div>
-          <div>
-            <h4>Fleet Health Monitor</h4>
-            <p>Battery levels, location, and ETA for every AV unit tracked in real time. Low-battery units are swapped automatically before peak hours begin.</p>
-          </div>
+        <div class="tf">
+          <div class="tf-icon">🌊</div>
+          <div><h4>Green Wave Riding</h4>
+          <p>FSD vehicles on Storrow Dr and Commonwealth Ave are speed-coached in real time to hit green-wave timing, reducing network-wide stops by an estimated 28%.</p></div>
         </div>
       </div>
-
-      <!-- AV Map canvas -->
-      <div class="av-map-container">
-        <div class="card-title">Live AV Fleet — Greater Boston</div>
-        <canvas id="av-canvas" width="480" height="340"></canvas>
-        <div class="av-legend">
-          <div class="av-legend-item"><div class="av-legend-dot" style="background:#cc0000"></div> Tesla AV (active)</div>
-          <div class="av-legend-item"><div class="av-legend-dot" style="background:var(--accent)"></div> MBTA Station</div>
-          <div class="av-legend-item"><div class="av-legend-dot" style="background:#22c55e"></div> Pick-up Zone</div>
-          <div class="av-legend-item"><div class="av-legend-dot" style="background:rgba(255,255,255,.3)"></div> Transit Corridor</div>
+      <div class="tesla-stats">
+        <div class="ts-card">
+          <div class="ts-label">Active Tesla Units</div>
+          <div class="ts-val" style="color:#cc0000" id="av-count">31</div>
+          <div class="ts-sub">I-93 corridor: 12 · I-90: 9 · Arterials: 10</div>
+        </div>
+        <div class="ts-card">
+          <div class="ts-label">Avg Fleet Speed</div>
+          <div class="ts-val" style="color:var(--accent)" id="av-speed">38 <span style="font-size:1rem">km/h</span></div>
+          <div class="ts-sub">Free-flow baseline: 72 km/h · Congestion factor: 47%</div>
+        </div>
+        <div class="ts-card">
+          <div class="ts-label">Stop Reduction (Green Wave)</div>
+          <div class="ts-val" style="color:var(--green)">28<span style="font-size:1rem">%</span></div>
+          <div class="ts-sub">Compared to fixed-timing signal control</div>
+        </div>
+        <div class="ts-card">
+          <div class="ts-label">Incident Response Time</div>
+          <div class="ts-val" style="color:var(--blue)">2.4 <span style="font-size:1rem">min</span></div>
+          <div class="ts-sub">From detection to nearest AV unit on-scene</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- LIVE EVENT FEED -->
-<section id="live">
-  <div class="section-inner">
-    <div class="section-tag">Real-Time Events</div>
-    <h2 class="section-title">System Event Feed</h2>
-    <p class="section-sub">Every action the AI takes — delay detections, AV dispatches, route changes, signal priority requests — logged as it happens.</p>
-    <div class="feed-container">
-      <div class="feed-header">
-        <div class="feed-live-dot"></div>
-        <div class="feed-title">Live System Log</div>
-      </div>
+<!-- LIVE FEED -->
+<section id="feed-section">
+  <div class="inner">
+    <div class="stag">Real-Time Events</div>
+    <h2 class="stitle">System Event Feed</h2>
+    <p class="ssub">Every incident detection, signal adjustment, reroute push, and AV dispatch — as it happens.</p>
+    <div class="feed-box">
+      <div class="feed-hdr"><span class="live-dot"></span><span class="feed-title">Live System Log</span></div>
       <div id="feed-list"></div>
     </div>
   </div>
@@ -547,196 +547,276 @@
 
 <!-- HOW IT WORKS -->
 <section id="how">
-  <div class="section-inner">
-    <div class="section-tag">Architecture</div>
-    <h2 class="section-title">How It Works</h2>
-    <p class="section-sub">A four-layer stack from raw MBTA data to AV dispatch — fully automated.</p>
+  <div class="inner">
+    <div class="stag">Architecture</div>
+    <h2 class="stitle">How It Works</h2>
+    <p class="ssub">From raw sensor data to Tesla dispatch in under 200 ms — four automated layers.</p>
     <div class="steps">
       <div class="step" data-n="1">
-        <div class="step-icon">📥</div>
-        <h4>Ingest</h4>
-        <p>MBTA V3 API streams stop arrivals, departures, crowding sensors, and vehicle positions every 10 seconds.</p>
+        <div class="step-icon">📡</div>
+        <h4>Sense</h4>
+        <p>Loop detectors, radar sensors, and probe-vehicle GPS report speed, volume, and occupancy from every highway segment every 30 seconds.</p>
       </div>
       <div class="step" data-n="2">
         <div class="step-icon">⚙️</div>
         <h4>Analyse</h4>
-        <p>The Python engine builds a weighted graph, runs Dijkstra routing, and scores every route for delay and crowding anomalies.</p>
+        <p>The Python engine applies BPR volume-delay, builds a weighted road graph, runs Dijkstra, and scores each segment for incidents vs. normal congestion.</p>
       </div>
       <div class="step" data-n="3">
-        <div class="step-icon">🤖</div>
-        <h4>Recommend</h4>
-        <p>AI rules engine generates headway changes, signal priority requests, and AV dispatch orders within 200 ms of detecting an issue.</p>
+        <div class="step-icon">🚦</div>
+        <h4>Optimise</h4>
+        <p>Adaptive signal timing and green-wave offsets are recalculated and pushed to the intersection controllers. VMS boards updated with diversion advice.</p>
       </div>
       <div class="step" data-n="4">
         <div class="step-icon">🚗</div>
         <h4>Dispatch</h4>
-        <p>Approved actions flow to the Tesla Fleet API, MBTA operations centre, and the passenger app simultaneously — zero manual steps.</p>
+        <p>Reroutes streamed to Tesla FSD vehicles via Fleet API. AV units dispatched to incident zones. Passenger app shows updated ETA instantly.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
-  Built with the <span>Boston Transit AI</span> engine · MBTA open data · Tesla Fleet API integration
-  · <span>python boston_transit.py</span> · All data simulated for demonstration purposes.
+  Powered by <span>boston_traffic.py</span> · I-93 · I-90 (Mass Pike) · Route 1 · Tesla Fleet API
+  &nbsp;·&nbsp; All data simulated for demonstration purposes.
 </footer>
 
-<!-- ══════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════ -->
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
 <script>
-/* ── Hero particle canvas ── */
+/* ── Hero animated road canvas ── */
 (function(){
-  const c = document.getElementById('hero-canvas');
+  const c = document.getElementById('road-canvas');
   const ctx = c.getContext('2d');
-  let W, H, pts = [];
-  function resize(){ W=c.width=c.offsetWidth; H=c.height=c.offsetHeight; }
+  let W, H;
+  function resize(){ W = c.width = c.offsetWidth; H = c.height = c.offsetHeight; }
   window.addEventListener('resize', resize);
   resize();
-  for(let i=0;i<90;i++){
-    pts.push({ x:Math.random()*W, y:Math.random()*H,
-               vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4 });
+
+  // Road lines
+  const roads = [];
+  for(let i = 0; i < 6; i++){
+    const angle = Math.random() * Math.PI;
+    roads.push({
+      x: Math.random() * W, y: Math.random() * H,
+      dx: Math.cos(angle), dy: Math.sin(angle),
+      len: 80 + Math.random() * 180,
+      col: ['#f59e0b44','#ef444433','#22c55e33'][Math.floor(Math.random()*3)],
+    });
   }
+
+  // Cars (dots moving along horizontal/diagonal paths)
+  const cars = [];
+  for(let i = 0; i < 50; i++){
+    const y = (i / 50) * H;
+    cars.push({ x: Math.random() * W, y: y + (Math.random()-0.5)*60,
+                v: 0.4 + Math.random() * 1.2,
+                col: ['#f59e0b','#ef4444','#22c55e','#38bdf8'][i%4] });
+  }
+
   function draw(){
     ctx.clearRect(0,0,W,H);
-    // lines
-    for(let i=0;i<pts.length;i++){
-      for(let j=i+1;j<pts.length;j++){
-        const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
-        if(d<120){
-          ctx.beginPath();
-          ctx.strokeStyle=`rgba(56,189,248,${.12*(1-d/120)})`;
-          ctx.lineWidth=.8;
-          ctx.moveTo(pts[i].x,pts[i].y);
-          ctx.lineTo(pts[j].x,pts[j].y);
-          ctx.stroke();
-        }
-      }
+    // faint grid
+    ctx.strokeStyle = 'rgba(255,255,255,.025)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<W;x+=60){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+    for(let y=0;y<H;y+=60){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+    // road lines
+    roads.forEach(r=>{
       ctx.beginPath();
-      ctx.arc(pts[i].x,pts[i].y,2,0,Math.PI*2);
-      ctx.fillStyle='rgba(56,189,248,0.4)';
+      ctx.strokeStyle = r.col;
+      ctx.lineWidth = 3;
+      ctx.moveTo(r.x - r.dx*r.len/2, r.y - r.dy*r.len/2);
+      ctx.lineTo(r.x + r.dx*r.len/2, r.y + r.dy*r.len/2);
+      ctx.stroke();
+    });
+    // cars
+    cars.forEach(car=>{
+      ctx.beginPath();
+      ctx.arc(car.x, car.y, 2.5, 0, Math.PI*2);
+      ctx.fillStyle = car.col;
       ctx.fill();
-      pts[i].x+=pts[i].vx; pts[i].y+=pts[i].vy;
-      if(pts[i].x<0||pts[i].x>W) pts[i].vx*=-1;
-      if(pts[i].y<0||pts[i].y>H) pts[i].vy*=-1;
-    }
+      car.x += car.v;
+      if(car.x > W + 10) car.x = -10;
+    });
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-/* ── Counter animation ── */
-function animateCount(el, end, suffix=''){
-  let start=0, step=Math.ceil(end/40);
-  const t=setInterval(()=>{
-    start=Math.min(start+step,end);
-    el.innerHTML = start + suffix;
-    if(start>=end) clearInterval(t);
-  },30);
-}
-setTimeout(()=>{
-  animateCount(document.getElementById('stat-routes'),4);
-  animateCount(document.getElementById('stat-stops'),10);
-  animateCount(document.getElementById('stat-av'),24);
-}, 600);
-
-/* ── AV Map canvas ── */
+/* ── Traffic light cycle simulation ── */
 (function(){
-  const c = document.getElementById('av-canvas');
-  const ctx = c.getContext('2d');
-  const W=c.width, H=c.height;
-
-  // MBTA stations (normalised coords for the canvas)
-  const stations = [
-    { name:'Harvard Sq',    x:.15, y:.18, lines:['Red'] },
-    { name:'Kendall/MIT',   x:.35, y:.30, lines:['Red'] },
-    { name:'Park St',       x:.52, y:.48, lines:['Red','Green'] },
-    { name:'Dwntn Crossing',x:.58, y:.52, lines:['Red','Orange'] },
-    { name:'South Station', x:.65, y:.60, lines:['Red','Silver'] },
-    { name:'North Station', x:.55, y:.28, lines:['Green','Orange'] },
-    { name:'Back Bay',      x:.42, y:.62, lines:['Orange'] },
-    { name:'Copley',        x:.32, y:.56, lines:['Green'] },
-  ];
-
-  // Transit corridors (pairs of station indices)
-  const corridors = [
-    [0,1,'#e3001b'],[1,2,'#e3001b'],[2,3,'#e3001b'],[3,4,'#e3001b'],
-    [5,2,'#00843d'],[2,7,'#00843d'],
-    [5,3,'#ed8b00'],[3,6,'#ed8b00'],
-    [4,4,'#7c878e'],
-  ];
-
-  // AV vehicles
-  const avs = [];
-  for(let i=0;i<12;i++){
-    avs.push({
-      x: .1+Math.random()*.8,
-      y: .1+Math.random()*.8,
-      tx: .1+Math.random()*.8,
-      ty: .1+Math.random()*.8,
-      speed: .002+Math.random()*.003,
-    });
+  const RED    = document.getElementById('tl-red');
+  const YELLOW = document.getElementById('tl-yellow');
+  const GREEN  = document.getElementById('tl-green');
+  // phases: [active bulb, duration ms]
+  const cycle = [['red',3000],['green',5800],['yellow',600]];
+  let phase = 0;
+  function next(){
+    RED.className    = 'tl-bulb tl-off';
+    YELLOW.className = 'tl-bulb tl-off';
+    GREEN.className  = 'tl-bulb tl-off';
+    const [active, dur] = cycle[phase];
+    if(active==='red')    RED.className    = 'tl-bulb tl-red';
+    if(active==='yellow') YELLOW.className = 'tl-bulb tl-yellow';
+    if(active==='green')  GREEN.className  = 'tl-bulb tl-green';
+    phase = (phase+1) % cycle.length;
+    setTimeout(next, dur);
   }
+  next();
+})();
 
-  function lerp(a,b,t){ return a+(b-a)*t; }
-  function px(v){ return v*W; }
-  function py(v){ return v*H; }
+/* ── Traffic road map canvas ── */
+(function(){
+  const c = document.getElementById('traffic-canvas');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  // Nodes: {id, x, y (0-1 normalised), label}
+  const nodes = {
+    route1_north:   {x:.88, y:.08, label:'Rt 1 N'},
+    sullivan:       {x:.72, y:.18, label:'Sullivan Sq'},
+    zakim:          {x:.60, y:.28, label:'Zakim'},
+    leverett:       {x:.55, y:.38, label:'Leverett'},
+    govt_center:    {x:.62, y:.48, label:'Govt Ctr'},
+    south_bay:      {x:.62, y:.72, label:'South Bay'},
+    neponset:       {x:.65, y:.90, label:'Neponset'},
+    allston:        {x:.18, y:.45, label:'Allston'},
+    mass_pike_east: {x:.38, y:.55, label:'Prudential'},
+    kenmore:        {x:.26, y:.52, label:'Kenmore'},
+    longfellow:     {x:.44, y:.38, label:'Longfellow'},
+    harvard_bridge: {x:.38, y:.50, label:'Hvd Bridge'},
+    copley:         {x:.32, y:.62, label:'Copley'},
+    route1_south:   {x:.22, y:.90, label:'Rt 1 S'},
+  };
+
+  // Edges: [from, to, congestion 0-1]
+  const edges = [
+    ['zakim','leverett',        0.55],
+    ['leverett','south_bay',    0.82],
+    ['south_bay','neponset',    0.45],
+    ['zakim','sullivan',        0.68],
+    ['sullivan','route1_north', 0.40],
+    ['allston','mass_pike_east',0.75],
+    ['mass_pike_east','south_bay',0.88],
+    ['route1_north','sullivan', 0.60],
+    ['neponset','route1_south', 0.35],
+    ['leverett','kenmore',      0.72],
+    ['kenmore','mass_pike_east',0.65],
+    ['leverett','longfellow',   0.50],
+    ['longfellow','harvard_bridge',0.48],
+    ['harvard_bridge','copley', 0.60],
+    ['copley','govt_center',    0.78],
+    ['govt_center','south_bay', 0.70],
+  ];
+
+  function congColor(v){
+    if(v < 0.45) return '#22c55e';
+    if(v < 0.75) return '#f59e0b';
+    return '#ef4444';
+  }
+  function px(v){ return v * W; }
+  function py(v){ return v * H; }
+
+  // Moving cars
+  const cars = [];
+  edges.forEach(([a,b,cong])=>{
+    const n = Math.floor(2 + cong * 4);
+    for(let i=0;i<n;i++){
+      cars.push({
+        a, b,
+        t: Math.random(),
+        speed: (0.001 + (1-cong)*0.002) * (Math.random()*0.5+0.75),
+        rev: Math.random() > 0.5,
+      });
+    }
+  });
+
+  // Incidents
+  const incidents = ['leverett→south_bay','mass_pike_east→south_bay','copley→govt_center'];
 
   function draw(){
     ctx.clearRect(0,0,W,H);
 
-    // grid
-    ctx.strokeStyle='rgba(255,255,255,.04)';
-    ctx.lineWidth=1;
-    for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
-    for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+    // background grid
+    ctx.strokeStyle = 'rgba(255,255,255,.03)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-    // corridors
-    corridors.forEach(([a,b,col])=>{
-      const s=stations[a], e=stations[b];
+    // edges
+    edges.forEach(([a,b,cong])=>{
+      const na = nodes[a], nb = nodes[b];
       ctx.beginPath();
-      ctx.strokeStyle=col+'55';
-      ctx.lineWidth=3;
-      ctx.moveTo(px(s.x),py(s.y));
-      ctx.lineTo(px(e.x),py(e.y));
+      ctx.strokeStyle = congColor(cong);
+      ctx.lineWidth = cong > 0.75 ? 5 : 3;
+      ctx.moveTo(px(na.x), py(na.y));
+      ctx.lineTo(px(nb.x), py(nb.y));
       ctx.stroke();
+      // dashed highway style overlay
+      if(cong > 0.75){
+        ctx.save();
+        ctx.setLineDash([6,4]);
+        ctx.strokeStyle = 'rgba(255,255,255,.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(px(na.x), py(na.y));
+        ctx.lineTo(px(nb.x), py(nb.y));
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
     });
 
-    // stations
-    stations.forEach(s=>{
+    // cars
+    cars.forEach(car=>{
+      const na = nodes[car.a], nb = nodes[car.b];
+      const t = car.rev ? 1-car.t : car.t;
+      const cx = px(na.x) + (px(nb.x)-px(na.x)) * t;
+      const cy = py(na.y) + (py(nb.y)-py(na.y)) * t;
       ctx.beginPath();
-      ctx.arc(px(s.x),py(s.y),8,0,Math.PI*2);
-      ctx.fillStyle='rgba(56,189,248,0.15)';
-      ctx.strokeStyle='rgba(56,189,248,0.7)';
-      ctx.lineWidth=2;
+      ctx.arc(cx, cy, 4, 0, Math.PI*2);
+      ctx.fillStyle = '#cc0000';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,180,180,.6)';
+      ctx.fill();
+      car.t += car.speed;
+      if(car.t > 1) car.t = 0;
+    });
+
+    // nodes
+    Object.entries(nodes).forEach(([id, n])=>{
+      ctx.beginPath();
+      ctx.arc(px(n.x), py(n.y), 7, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(245,158,11,.15)';
+      ctx.strokeStyle = 'rgba(245,158,11,.7)';
+      ctx.lineWidth = 2;
       ctx.fill(); ctx.stroke();
-      ctx.fillStyle='rgba(255,255,255,.85)';
-      ctx.font='9px "Segoe UI", sans-serif';
-      ctx.fillText(s.name, px(s.x)+12, py(s.y)+4);
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.font = '10px "Segoe UI",sans-serif';
+      ctx.fillText(n.label, px(n.x)+10, py(n.y)+4);
     });
 
-    // AVs
-    avs.forEach(av=>{
-      // move toward target
-      const dx=av.tx-av.x, dy=av.ty-av.y;
-      const d=Math.hypot(dx,dy);
-      if(d<.01){ av.tx=.1+Math.random()*.8; av.ty=.1+Math.random()*.8; }
-      else { av.x+=dx/d*av.speed; av.y+=dy/d*av.speed; }
-
-      // draw car icon
-      const cx=px(av.x), cy=py(av.y);
-      ctx.save();
-      ctx.translate(cx,cy);
+    // incident markers
+    [
+      {a:'leverett',b:'south_bay'},
+      {a:'mass_pike_east',b:'south_bay'},
+      {a:'copley',b:'govt_center'},
+    ].forEach(({a,b})=>{
+      const na = nodes[a], nb = nodes[b];
+      const mx = px((na.x+nb.x)/2), my = py((na.y+nb.y)/2);
       ctx.beginPath();
-      ctx.arc(0,0,7,0,Math.PI*2);
-      ctx.fillStyle='rgba(204,0,0,0.9)';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(0,0,4,0,Math.PI*2);
-      ctx.fillStyle='rgba(255,255,255,0.4)';
-      ctx.fill();
-      ctx.restore();
+      ctx.arc(mx, my, 9, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(239,68,68,.2)';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', mx, my+4);
+      ctx.textAlign = 'left';
     });
 
     requestAnimationFrame(draw);
@@ -747,39 +827,45 @@ setTimeout(()=>{
 /* ── Live event feed ── */
 (function(){
   const events = [
-    { tag:'warn',  label:'Green Line',  msg:'Crowding at 85% — AV dispatch triggered for Copley corridor.' },
-    { tag:'tesla', label:'Tesla AV',    msg:'Unit #AV-07 dispatched to Copley St, ETA 3 min.' },
-    { tag:'warn',  label:'Silver Line', msg:'5.5 min average delay detected on Washington St segment.' },
-    { tag:'info',  label:'Dijkstra',    msg:'Optimal path recalculated: Harvard → South Station, cost 6.73.' },
-    { tag:'ok',    label:'Red Line',    msg:'All trains within normal parameters — 2.3 min delay.' },
-    { tag:'tesla', label:'Tesla AV',    msg:'Unit #AV-12 completing drop-off at South Station. Recharging 78%.' },
-    { tag:'info',  label:'Headway Eng', msg:'Green Line peak headway set to 2.0 min for next 4 hours.' },
-    { tag:'warn',  label:'Orange Line', msg:'Moderate crowding (70%) at Downtown Crossing — monitoring.' },
-    { tag:'ok',    label:'AV Fleet',    msg:'24 units active, avg battery 81%, zero faults reported.' },
-    { tag:'tesla', label:'Tesla AV',    msg:'Unit #AV-03 routed to Harvard Sq — Green Line overflow zone.' },
-    { tag:'info',  label:'Signal Ctrl', msg:'Priority request sent to City of Boston for Silver Line BRT lanes.' },
-    { tag:'ok',    label:'System',      msg:'Network avg delay 3.72 min · crowding 73% — within SLA.' },
+    {tag:'t-acc', label:'ACCIDENT',  msg:'I-93 S exit 26 — multi-vehicle collision. 2 lanes blocked. VMS diversion activated.'},
+    {tag:'t-jam', label:'CONGESTION',msg:'I-90 E Prudential→SouthBay at 88% — BPR delay factor ×3.1. Reroute pushed to 9 Tesla units.'},
+    {tag:'t-sig', label:'SIGNAL',    msg:'Kenmore Sq: N-S green extended to 58s · E-W reduced to 24s. Vehicle count 420 vs 180 veh/h.'},
+    {tag:'t-av',  label:'TESLA AV',  msg:'Unit #AV-09 dispatched to Boylston St stall. ETA 2.1 min. Blocking right lane cleared.'},
+    {tag:'t-ok',  label:'CLEAR',     msg:'I-93 S South Bay→Neponset running at 45% — recommended diversion corridor for I-93/I-90 overflow.'},
+    {tag:'t-sig', label:'GREEN WAVE',msg:'Storrow Dr corridor synced: Leverett 0s · Longfellow 67s · Harvard Bridge 37s · Kenmore 37s.'},
+    {tag:'t-jam', label:'CONGESTION',msg:'Route 1 N Chelsea→Sullivan at 60% — moderate. Monitoring. No diversion required yet.'},
+    {tag:'t-av',  label:'TESLA AV',  msg:'Fleet avg speed 38 km/h. Green-wave riding active on Storrow Dr — stop reduction 28%.'},
+    {tag:'t-acc', label:'INCIDENT',  msg:'Speed anomaly on I-90 E Prudential: 22 km/h vs 88 limit (25%) — construction confirmed, not incident.'},
+    {tag:'t-ok',  label:'RESOLVED',  msg:'Commonwealth Ave signal timing adjusted — parallel overflow from I-90 construction absorbed.'},
+    {tag:'t-sig', label:'SIGNAL',    msg:'Copley Sq: E-W phase extended 12s to clear Boylston St backup from disabled vehicle.'},
+    {tag:'t-av',  label:'TESLA AV',  msg:'Unit #AV-14 completing Dijkstra reroute: Sullivan→Zakim→Leverett→Longfellow→Copley. ETA 7.3 min.'},
   ];
-  let idx=0;
+  let idx = 0;
   const list = document.getElementById('feed-list');
-  const MAX=6;
-
-  function addEvent(){
-    const e=events[idx++ % events.length];
-    const now=new Date();
-    const ts=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const item=document.createElement('div');
-    item.className='feed-item';
-    item.innerHTML=`
-      <span class="feed-time">${ts}</span>
-      <span class="feed-tag tag-${e.tag}">${e.label}</span>
-      <span style="color:var(--text)">${e.msg}</span>`;
+  function add(){
+    const e = events[idx++ % events.length];
+    const ts = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.innerHTML = `<span class="ftime">${ts}</span><span class="ftag ${e.tag}">${e.label}</span><span>${e.msg}</span>`;
     list.prepend(item);
-    while(list.children.length>MAX) list.removeChild(list.lastChild);
+    while(list.children.length > 6) list.removeChild(list.lastChild);
   }
+  add();
+  setInterval(add, 2600);
+})();
 
-  addEvent();
-  setInterval(addEvent, 2800);
+/* ── KPI counter animation ── */
+(function(){
+  function count(id, end, suffix=''){
+    const el = document.getElementById(id);
+    if(!el) return;
+    let v = 0, step = Math.ceil(end/40);
+    const t = setInterval(()=>{ v=Math.min(v+step,end); el.innerHTML=v+suffix; if(v>=end) clearInterval(t); }, 28);
+  }
+  setTimeout(()=>{
+    count('k-roads',16); count('k-signals',14); count('k-av',31); count('k-inc',3);
+  }, 500);
 })();
 </script>
 </body>
