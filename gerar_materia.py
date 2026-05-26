@@ -111,7 +111,7 @@ def publicar_supabase(dados: dict) -> str:
 
 # ── pipeline principal ────────────────────────────────────────────────────────
 
-def main(caminho: str, fonte: str = "") -> None:
+def main(caminho: str, fonte: str = "", imagem_url: str = "") -> None:
     extensao = Path(caminho).suffix.lower()
 
     # 1. Obter texto base
@@ -136,7 +136,7 @@ def main(caminho: str, fonte: str = "") -> None:
 
     slug = gerar_slug(portal["titulo"])
 
-    dados = {
+    dados: dict = {
         "titulo":         portal["titulo"],
         "slug":           slug,
         "conteudo":       portal["conteudo"],
@@ -149,6 +149,8 @@ def main(caminho: str, fonte: str = "") -> None:
         "transcricao":    texto_base,
         "fonte_original": fonte,
     }
+    if imagem_url:
+        dados["imagem_url"] = imagem_url
 
     # 4. Supabase
     print("[4/4] Salvando rascunho no Supabase...")
@@ -175,7 +177,8 @@ def main(caminho: str, fonte: str = "") -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Uso: python3 gerar_materia.py <arquivo.mp3|.txt> [url_fonte]")
+        print("Uso: python3 gerar_materia.py <arquivo.mp3|.txt> [url_fonte] [url_imagem]")
         sys.exit(1)
-    fonte_url = sys.argv[2] if len(sys.argv) > 2 else ""
-    main(sys.argv[1], fonte_url)
+    fonte_url  = sys.argv[2] if len(sys.argv) > 2 else ""
+    img_url    = sys.argv[3] if len(sys.argv) > 3 else ""
+    main(sys.argv[1], fonte_url, img_url)

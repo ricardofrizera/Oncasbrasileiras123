@@ -155,6 +155,7 @@ def publicar_supabase(
     transcricao: str = "",
     fonte_original: str = "",
     categoria: str = "",
+    imagem_url: str = "",
 ) -> str:
     """Salva matéria no Supabase como rascunho. Retorna o ID do artigo criado.
 
@@ -168,6 +169,7 @@ def publicar_supabase(
         transcricao: Texto original transcrito do áudio (opcional).
         fonte_original: URL da matéria de origem (opcional).
         categoria: Categoria do artigo (opcional).
+        imagem_url: URL da imagem de capa para preview no WhatsApp/redes (opcional).
     """
     try:
         from supabase import create_client
@@ -184,7 +186,7 @@ def publicar_supabase(
     slug = re.sub(r"[\s_]+", "-", s).strip("-")[:80]
 
     sb = create_client(url, key)
-    result = sb.table("artigos").insert({
+    payload: dict = {
         "titulo":          titulo,
         "slug":            slug,
         "conteudo":        conteudo,
@@ -197,7 +199,11 @@ def publicar_supabase(
         "transcricao":     transcricao,
         "fonte_original":  fonte_original,
         "categoria":       categoria,
-    }).execute()
+    }
+    if imagem_url:
+        payload["imagem_url"] = imagem_url
+
+    result = sb.table("artigos").insert(payload).execute()
 
     artigo_id = result.data[0]["id"]
     return f"Rascunho criado com sucesso. ID: {artigo_id} | Slug: {slug}"
